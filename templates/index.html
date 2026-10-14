@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SMS Spam Classifier</title>
+  <style>
+    :root { --ink:#1d2433; --muted:#5b6475; --line:#d8dce4; --paper:#f6f5f2; --spam:#b3261e; --ham:#1b6b3a; --accent:#23395d; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family: Georgia, "Times New Roman", serif; line-height:1.55; }
+    main { max-width: 640px; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height:1.1; margin:0 0 .5rem; }
+    p.lead { color:var(--muted); margin:0 0 1.75rem; max-width: 52ch; }
+    label { display:block; font-weight:bold; margin-bottom:.4rem; }
+    textarea { width:100%; min-height: 9rem; padding:.8rem; font: inherit; border:1px solid var(--line); border-radius:4px; background:#fff; resize:vertical; }
+    .row { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.9rem; align-items:center; }
+    button { font: inherit; padding:.6rem 1.2rem; border-radius:4px; border:1px solid var(--accent); cursor:pointer; }
+    button.primary { background:var(--accent); color:#fff; }
+    button.ghost { background:transparent; color:var(--accent); }
+    :focus-visible { outline:3px solid #e0a100; outline-offset:2px; }
+    .result { margin-top:1.75rem; padding:1.1rem 1.2rem; border-left:6px solid var(--ham); background:#fff; }
+    .result.spam { border-left-color: var(--spam); }
+    .verdict { font-size:1.5rem; font-weight:bold; }
+    .result.spam .verdict { color:var(--spam); } .result.ham .verdict { color:var(--ham); }
+    .bar { height:10px; background:#e6e8ee; border-radius:5px; overflow:hidden; margin:.7rem 0 .3rem; }
+    .bar > span { display:block; height:100%; background:var(--spam); }
+    .small { color:var(--muted); font-size:.92rem; }
+    .error { margin-top:1rem; padding:.8rem 1rem; background:#fdecea; border-left:6px solid var(--spam); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Is this text message spam?</h1>
+  <p class="lead">Paste an SMS and a model trained on the UCI SMS Spam Collection will estimate how likely it is to be spam.</p>
+
+  <form method="post">
+    <label for="message">Message</label>
+    <textarea id="message" name="message" maxlength="1000" required>{{ message }}</textarea>
+    <div class="row">
+      <button class="primary" type="submit">Check message</button>
+      <button class="ghost" type="button" data-sample="WINNER!! You have been selected for a free prize. Call 09061701461 now to claim your reward.">Try a spam example</button>
+      <button class="ghost" type="button" data-sample="Hey, I will be a bit late for dinner. Can you save me a seat?">Try a normal message</button>
+    </div>
+  </form>
+
+  {% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+
+  {% if result %}
+  <section class="result {{ result.label }}" aria-live="polite">
+    <div class="verdict">{{ 'Spam' if result.label == 'spam' else 'Not spam' }}</div>
+    <div class="bar" aria-hidden="true"><span style="width: {{ (result.spam_probability * 100)|round(1) }}%"></span></div>
+    <div class="small">Spam probability: {{ (result.spam_probability * 100)|round(1) }}%. This is a statistical estimate, not a guarantee.</div>
+  </section>
+  {% endif %}
+</main>
+<script>
+  document.querySelectorAll("[data-sample]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.getElementById("message").value = btn.dataset.sample;
+      document.getElementById("message").focus();
+    });
+  });
+</script>
+</body>
+</html>
